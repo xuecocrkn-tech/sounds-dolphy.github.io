@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Кнопка со звуком</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #831843 100%);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    padding: 56px 64px;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    animation: appear 0.7s ease-out;
+  }
+
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  h1 {
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  p.hint {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.9rem;
+    margin-bottom: 36px;
+  }
+
+  .btn {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    background: linear-gradient(145deg, #6366f1, #a855f7);
+    box-shadow:
+      0 12px 32px rgba(139, 92, 246, 0.55),
+      inset 0 2px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -6px 14px rgba(0, 0, 0, 0.25);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 18px 42px rgba(139, 92, 246, 0.7),
+      inset 0 2px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -6px 14px rgba(0, 0, 0, 0.25);
+  }
+
+  .btn:active,
+  .btn.pressed {
+    transform: translateY(2px) scale(0.97);
+    box-shadow:
+      0 6px 18px rgba(139, 92, 246, 0.5),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+
+  /* круглая волна при нажатии */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.45);
+    transform: scale(0);
+    animation: rippleAnim 0.6s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes rippleAnim {
+    to { transform: scale(2.6); opacity: 0; }
+  }
+
+  .counter {
+    margin-top: 28px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Нажми на кнопку 🎵</h1>
+    <p class="hint">Каждое нажатие — новый звук</p>
+
+    <button class="btn" id="soundBtn">PLAY</button>
+
+    <div class="counter" id="counter">Нажатий: 0</div>
+  </div>
+
+<script>
+  let audioCtx = null;
+  let clicks = 0;
+
+  const btn = document.getElementById('soundBtn');
+  const counterEl = document.getElementById('counter');
+
+  // Создаём/возобновляем аудиоконтекст (браузеры требуют действие пользователя)
+  function getCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // Приятный "поп"-звук: две ноты с плавным затуханием
+  function playPop() {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+
+    // Основной тон
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(330, now + 0.18);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.35, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.35);
+
+    // Лёгкий "щелчок" сверху для чёткости
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(1760, now);
+    osc2.frequency.exponentialRampToValueAtTime(1200, now + 0.06);
+
+    gain2.gain.setValueAtTime(0.12, now);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now);
+    osc2.stop(now + 0.1);
+  }
+
+  // Волна-рябь от точки клика
+  function spawnRipple(event) {
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+
+    let x, y;
+    if (event && event.clientX) {
+      x = event.clientX - rect.left;
+      y = event.clientY - rect.top;
+    } else {
+      x = rect.width / 2;
+      y = rect.height / 2;
+    }
+
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (x - size / 2) + 'px';
+    ripple.style.top = (y - size / 2) + 'px';
+
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  }
+
+  // Клик мышью
+  btn.addEventListener('click', (e) => {
+    playPop();
+    spawnRipple(e);
+    clicks++;
+    counterEl.textContent = 'Нажатий: ' + clicks;
+  });
+
+  // Поддержка клавиатуры (Enter / Space)
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      btn.classList.add('pressed');
+      playPop();
+      spawnRipple(null);
+      clicks++;
+      counterEl.textContent = 'Нажатий: ' + clicks;
+    }
+  });
+
+  btn.addEventListener('keyup', () => btn.classList.remove('pressed'));
+</script>
+
+</body>
+</html>
