@@ -49,12 +49,19 @@
 
   <button class="btn" id="btn">Нажми</button>
 
+  <!-- Аудиофайл лежит рядом с index.html -->
+  <audio id="sound" src="sound.mp3" preload="auto"></audio>
+
 <script>
   const btn = document.getElementById('btn');
+  const sound = document.getElementById('sound');
 
   btn.addEventListener('click', () => {
-    // Здесь можно добавить своё действие
-    console.log('Кнопка нажата');
+    // Сбрасываем на начало, чтобы можно было быстро нажимать подряд
+    sound.currentTime = 0;
+    sound.play().catch(err => {
+      console.error('Не удалось воспроизвести sound.mp3:', err);
+    });
   });
 </script>
 
