@@ -17,53 +17,24 @@
     align-items: center;
     justify-content: center;
     background: #000;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
 
-  .btn {
-    padding: 18px 48px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: #000;
-    background: #fff;
+  iframe {
     border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.1s ease, background 0.15s ease;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .btn:hover {
-    background: #e6e6e6;
-  }
-
-  .btn:active {
-    transform: scale(0.96);
-    background: #d4d4d4;
+    display: block;
   }
 </style>
 </head>
 <body>
 
-  <button class="btn" id="btn">Нажми</button>
-
-  <!-- Аудиофайл лежит рядом с index.html -->
-  <audio id="sound" src="sound.mp3" preload="auto"></audio>
-
-<script>
-  const btn = document.getElementById('btn');
-  const sound = document.getElementById('sound');
-
-  btn.addEventListener('click', () => {
-    // Сбрасываем на начало, чтобы можно было быстро нажимать подряд
-    sound.currentTime = 0;
-    sound.play().catch(err => {
-      console.error('Не удалось воспроизвести sound.mp3:', err);
-    });
-  });
-</script>
+  <iframe
+    width="110"
+    height="200"
+    src="https://www.myinstants.com/instant/apple-pay-45496/embed/"
+    frameborder="0"
+    scrolling="no"
+    allow="autoplay">
+  </iframe>
 
 </body>
 </html>
